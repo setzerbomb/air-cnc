@@ -1,15 +1,55 @@
-import React from "react";
-import { View, Text, TextInput, Image, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  AsyncStorage
+} from "react-native";
+
+import api from "../services/api";
 
 import logo from "../../assets/logo.png";
 
-export default function Login() {
+export default function Login({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [techs, setTechs] = useState("");
+
+  useEffect(() => {
+    AsyncStorage.getItem("user").then(user => {
+      if (user) {
+        navigation.navigate("List");
+      }
+    });
+  }, []);
+
+  async function handleSubmint() {
+    const response = await api.post("/sessions", {
+      email
+    });
+
+    const { _id } = response.data;
+
+    await AsyncStorage.setItem("user", _id);
+    await AsyncStorage.setItem("techs", techs);
+
+    navigation.navigate("List");
+  }
+
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior="padding"
+      enabled={Platform.OS === "ios"}
+      style={styles.container}
+    >
       <Image source={logo}></Image>
 
       <View style={styles.form}>
-        <Text style={styles.label}>SEU E-MAIL</Text>
+        <Text style={styles.label}>SEU E-MAIL *</Text>
         <TextInput
           style={styles.input}
           placeholder="Seu e-mail"
@@ -17,9 +57,26 @@ export default function Login() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          value={email}
+          onChangeText={setEmail}
         ></TextInput>
+
+        <Text style={styles.label}>TECNOLOGIAS *</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Tecnologias de Interesse"
+          placeholderTextColor="#999"
+          autoCapitalize="words"
+          autoCorrect={false}
+          value={techs}
+          onChangeText={setTechs}
+        ></TextInput>
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmint}>
+          <Text style={styles.buttonText}> Encontrar spots</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
