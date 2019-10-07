@@ -8,5 +8,6 @@ const api = axios.create({
 });
 
 api.defaultDomain = domain;
+api.defaultBaseURL = `http://${domain}:${port}`;
 
 export default api;

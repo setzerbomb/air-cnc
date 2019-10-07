@@ -5,15 +5,36 @@ import {
   AsyncStorage,
   Image,
   StyleSheet,
-  ScrollView
+  ScrollView,
+  Alert
 } from "react-native";
+
+import socketio from "socket.io-client";
 
 import SpotList from "../components/SpotList";
 
 import logo from "../../assets/logo.png";
 
+import api from "../services/api";
+
 export default function List() {
   const [techs, setTechs] = useState([]);
+
+  useEffect(() => {
+    AsyncStorage.getItem("user").then(user_id => {
+      const socket = socketio(api.defaultBaseURL, {
+        query: { user_id }
+      });
+
+      socket.on("booking_response", booking => {
+        Alert.alert(
+          `Sua reserva em ${booking.spot.company} em ${booking.date} foi ${
+            booking.approved ? "APROVADA" : "REJEITADA"
+          }`
+        );
+      });
+    });
+  }, []);
 
   useEffect(() => {
     async function getStoragedTechs() {
